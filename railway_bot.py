@@ -216,7 +216,7 @@ def main_kb():
 
 def trade_kb():
     return ReplyKeyboardMarkup(keyboard=[
-        [KeyboardButton(text="📡 Сигналы"), KeyboardButton(text="🎯 Снайпер")],
+        [KeyboardButton(text="📡 Сигналы AI"), KeyboardButton(text="🎯 Снайпер")],
         [KeyboardButton(text="🚀 Пампы"), KeyboardButton(text="👑 VIP сигналы")],
         [KeyboardButton(text="💼 Портфель"), KeyboardButton(text="📋 Сделки")],
         [KeyboardButton(text="🔙 Назад")],
@@ -308,7 +308,7 @@ async def send_signals(msg, prices, stype, title):
         kb.append([InlineKeyboardButton(text=f"BUY {sym}", callback_data=f"buy_{sym}_{data['price']}")])
     await msg.answer(text, reply_markup=InlineKeyboardMarkup(inline_keyboard=kb))
 
-@dp.message(F.text == "📡 Сигналы")
+@dp.message(F.text == "📡 Сигналы AI")
 async def sig(msg: types.Message): await send_signals(msg, await discovery.fetch_all(), "signals", "📡 Сигналы")
 @dp.message(F.text == "🎯 Снайпер")
 async def snipe(msg: types.Message): await send_signals(msg, await discovery.fetch_all(), "sniper", "🎯 Снайпер")
