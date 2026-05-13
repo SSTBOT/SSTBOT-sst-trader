@@ -204,12 +204,17 @@ async def auto_trading_loop():
                 
                 # Открытие позиций
                 for k, v in uniq[:2]:
-                    if k in open_tokens: continue  # Максимум 2 новые за цикл
-                    target = v["price"] * (1 + cfg["target"] / 100)
-                    stop = v["price"] * (1 - cfg["stop"] / 100)
+                    if k in open_tokens: continue
+                    
+                    # РЕАЛЬНЫЙ ОРДЕР НА BYBIT
+                    real_order = place_real_order(k, "BUY", amt)
+                    executed_price = real_order["price"] if real_order else v["price"]
+                    target = executed_price * (1 + cfg["target"] / 100)
+                    stop = executed_price * (1 - cfg["stop"] / 100)
                     
                     pos = {
-                        "token": k, "entry_price": v["price"],
+                        "token": k, "entry_price": executed_price,
+                        "real_order": real_order is not None,
                         "amount": round(amt, 2), "target": round(target, 4),
                         "stop_loss": round(stop, 4), "current_price": v["price"],
                         "pnl": 0, "status": "open", "source": "auto",
