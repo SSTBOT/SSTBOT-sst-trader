@@ -11,6 +11,27 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(me
 logger = logging.getLogger("SST")
 
 from supabase import create_client
+
+# ===== BYBIT REAL API =====
+from pybit.unified_trading import HTTP
+BYBIT_KEY = "QtxrlcN1pPUPQFMpMW"
+BYBIT_SECRET = "uxwWmOC7CFs85iMQHRq5gRpINDxkAsihxfft"
+bybit = HTTP(testnet=False, api_key=BYBIT_KEY, api_secret=BYBIT_SECRET)
+
+def place_real_order(symbol: str, side: str, amount_usd: float):
+    try:
+        sym = symbol.replace("/", "")
+        ticker = bybit.get_tickers(category="spot", symbol=sym)
+        if ticker.get("retCode") != 0: return None
+        price = float(ticker["result"]["list"][0]["lastPrice"])
+        qty = round(amount_usd / price, 4)
+        if qty <= 0: return None
+        order = bybit.place_order(category="spot", symbol=sym, side="Buy" if side=="BUY" else "Sell", orderType="Market", qty=str(qty))
+        if order.get("retCode") == 0:
+            logger.info(f"REAL ORDER: {side} {symbol} ${amount_usd:.2f}")
+            return {"price": price, "qty": qty, "order_id": order["result"]["orderId"]}
+    except Exception as e: logger.error(f"Bybit error: {e}")
+    return None
 SUPABASE_URL = "https://throkijrjphuuevnofoi.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRocm9raWpyanBodXVldm5vZm9pIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODYxMjg5MCwiZXhwIjoyMDk0MTg4ODkwfQ.7p10xZyUvQ5SrPWDJHV_knVaEryn21CeP8YGbrc1CkI"
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
