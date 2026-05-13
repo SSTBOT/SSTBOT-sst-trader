@@ -6,14 +6,13 @@ import numpy as np
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
 
 from supabase import create_client
-SUPABASE_URL = "https://5oukEO6ho0wCH0NV9zuvBw.supabase.co"
+SUPABASE_URL = "https://throkijrjphuuevnofoi.supabase.co"
 SUPABASE_KEY = "sb_publishable_5oukEO6ho0wCH0NV9zuvBw_RKRCvl4Z"
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8510828511:AAEwLy9HhcoWVDROLgr3a4v2nx3ydc7WQiY")
 STABLECOINS = {"USDCUSDT","USDTUSDT","FDUSDUSDT","BUSDUSDT","DAIUSDT","TUSDUSDT","USDC","USDT"}
 
-# ===== 10 ИСТОЧНИКОВ ТОКЕНОВ =====
 class TokenDiscovery:
     def __init__(self):
         self.known = set()
@@ -74,13 +73,11 @@ class TokenDiscovery:
 
 discovery = TokenDiscovery()
 
-# ===== DEEP Q-LEARNING AI =====
 class DeepQLearning:
     def __init__(self):
         self.q = defaultdict(lambda: np.zeros(3))
         self.memory = deque(maxlen=10000)
         self.lr = 0.001; self.gamma = 0.95; self.eps = 0.1
-        self.eps_min = 0.01; self.eps_decay = 0.9995
     
     def state(self, price, chg, vol, risk):
         return f"{int(price//1000)}_{int(chg//3)}_{int(vol//1e6)}_{risk}"
@@ -92,18 +89,9 @@ class DeepQLearning:
     def learn(self, s, a, r, ns, done):
         target = r if done else r + self.gamma * np.max(self.q[ns])
         self.q[s][a] += self.lr * (target - self.q[s][a])
-        self.eps = max(self.eps_min, self.eps * self.eps_decay)
-    
-    def remember(self, s, a, r, ns, done):
-        self.memory.append((s, a, r, ns, done))
-        if len(self.memory) >= 32:
-            batch = random.sample(self.memory, 32)
-            for s, a, r, ns, done in batch:
-                self.learn(s, a, r, ns, done)
 
 ai = DeepQLearning()
 
-# ===== СТРАТЕГИИ =====
 STRATEGIES = {
     "aggressive": {"name": "Агрессивная", "position": 20, "stop": 3, "target": 10},
     "moderate": {"name": "Умеренная", "position": 10, "stop": 5, "target": 15},
@@ -113,7 +101,6 @@ STRATEGIES = {
     "ai": {"name": "AI Стратегия", "position": 15, "stop": 5, "target": 20},
 }
 
-# ===== БАЗА ДАННЫХ =====
 class DB:
     def get(self, uid):
         try:
@@ -121,11 +108,13 @@ class DB:
             return r.data[0] if r.data else None
         except: return None
     def create(self, uid, name):
-        supabase.table("users").insert({
-            "id": uid, "name": name, "balance": 10000, "sub": "vip",
-            "auto_trading": 0, "strategy": "ai", "reinvest": 50,
-            "risk": "medium", "trades": [], "positions": [], "signals": 0
-        }).execute()
+        try:
+            supabase.table("users").insert({
+                "id": uid, "name": name, "balance": 10000, "sub": "vip",
+                "auto_trading": 0, "strategy": "ai", "reinvest": 50,
+                "risk": "medium", "trades": [], "positions": [], "signals": 0
+            }).execute()
+        except: pass
         return self.get(uid)
     def update(self, uid, data):
         try: supabase.table("users").update(data).eq("id", uid).execute()
@@ -148,7 +137,6 @@ class DB:
 
 db = DB()
 
-# ===== СИГНАЛЫ =====
 def get_signals(prices, sig_type="signals"):
     s = sorted(prices.items(), key=lambda x: x[1]["chg"], reverse=True)
     if sig_type == "signals": return [(k, v) for k, v in s if v["chg"] > 2][:10]
@@ -162,7 +150,6 @@ def get_signals(prices, sig_type="signals"):
         return sorted(prices.items(), key=lambda x: x[1]["vol"], reverse=True)[:20]
     return []
 
-# ===== АВТОТРЕЙДИНГ =====
 async def auto_trading_loop():
     while True:
         try:
@@ -185,13 +172,6 @@ async def auto_trading_loop():
                 seen = set(); uniq = []
                 for k, v in candidates:
                     if k not in seen: seen.add(k); uniq.append((k, v))
-                
-                if strategy == "ai":
-                    filtered = []
-                    for k, v in uniq[:5]:
-                        state = ai.state(v["price"], v["chg"], v["vol"], risk)
-                        if ai.predict(state) == 0: filtered.append((k, v))
-                    uniq = filtered
                 
                 rp = {"low": cfg["position"]*0.5, "medium": cfg["position"], "high": cfg["position"]*1.5}[risk]
                 amt = balance * rp / 100
@@ -216,7 +196,6 @@ async def auto_trading_loop():
             logging.error(f"Auto-trading: {e}")
         await asyncio.sleep(45)
 
-# ===== TELEGRAM BOT =====
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import Command
@@ -232,13 +211,12 @@ def main_kb():
     return ReplyKeyboardMarkup(keyboard=[
         [KeyboardButton(text="📡 Торговля"), KeyboardButton(text="📊 Аналитика")],
         [KeyboardButton(text="🤖 Автотрейдинг"), KeyboardButton(text="👤 Профиль")],
-        [KeyboardButton(text="⚙️ Настройки"), KeyboardButton(text="💳 Пополнить")],
+        [KeyboardButton(text="⚙️ Настройки")],
     ], resize_keyboard=True)
 
 def trade_kb():
     return ReplyKeyboardMarkup(keyboard=[
-        [KeyboardButton(text="📡 Сигналы"), KeyboardButton(text="🆕 Листинги")],
-        [KeyboardButton(text="📊 Топ-20"), KeyboardButton(text="🎯 Снайпер")],
+        [KeyboardButton(text="📡 Сигналы"), KeyboardButton(text="🎯 Снайпер")],
         [KeyboardButton(text="🚀 Пампы"), KeyboardButton(text="👑 VIP сигналы")],
         [KeyboardButton(text="💼 Портфель"), KeyboardButton(text="📋 Сделки")],
         [KeyboardButton(text="🔙 Назад")],
@@ -247,24 +225,22 @@ def trade_kb():
 def analytics_kb():
     return ReplyKeyboardMarkup(keyboard=[
         [KeyboardButton(text="📈 Альфа"), KeyboardButton(text="📉 Бетта")],
-        [KeyboardButton(text="🔬 Бэктест"), KeyboardButton(text="📊 График")],
-        [KeyboardButton(text="🔙 Назад")],
+        [KeyboardButton(text="📊 График"), KeyboardButton(text="🔙 Назад")],
     ], resize_keyboard=True)
 
 @dp.message(Command("start"))
 async def start(msg: types.Message, state: FSMContext):
     u = db.get(msg.from_user.id)
     if u: await msg.answer(f"👋 {u['name']}\n💰 {u['balance']:,.0f}\n🤖 Авто: {'🟢' if u.get('auto_trading') else '🔴'}", reply_markup=main_kb())
-    else: await msg.answer("🚀 SST TRADER v8.0\n\nИмя:"); await state.set_state(St.name)
+    else: await msg.answer("🚀 SST TRADER v8.0\n\nВведите имя:"); await state.set_state(St.name)
 
 @dp.message(St.name)
 async def name(msg: types.Message, state: FSMContext):
     db.create(msg.from_user.id, msg.text.strip()); await state.clear()
-    await msg.answer("✅ Готово! VIP доступ", reply_markup=main_kb())
+    await msg.answer("✅ Готово! VIP доступ\n$10,000 на балансе", reply_markup=main_kb())
 
 @dp.message(F.text == "📡 Торговля")
 async def trade(msg: types.Message): await msg.answer("📡 Торговля", reply_markup=trade_kb())
-
 @dp.message(F.text == "📊 Аналитика")
 async def analytics(msg: types.Message): await msg.answer("📊 Аналитика", reply_markup=analytics_kb())
 
@@ -290,7 +266,6 @@ async def settings(msg: types.Message):
     await msg.answer("⚙️ Настройки", reply_markup=InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📊 Стратегия", callback_data="strat")],
         [InlineKeyboardButton(text="🛡️ Риск", callback_data="risk")],
-        [InlineKeyboardButton(text="💰 Реинвест", callback_data="reinv")],
     ]))
 
 @dp.callback_query(F.data == "strat")
@@ -305,7 +280,6 @@ async def strat_set(cb: types.CallbackQuery):
     s = cb.data.split("_")[1]
     db.update(cb.from_user.id, {"strategy": s})
     await cb.answer(f"✅ {STRATEGIES[s]['name']}")
-    await cb.message.edit_text(f"✅ {STRATEGIES[s]['name']}")
 
 @dp.callback_query(F.data == "risk")
 async def risk_cb(cb: types.CallbackQuery):
@@ -320,22 +294,6 @@ async def risk_set(cb: types.CallbackQuery):
     r = cb.data.split("_")[1]
     db.update(cb.from_user.id, {"risk": r})
     await cb.answer(f"✅ {r}")
-
-@dp.callback_query(F.data == "reinv")
-async def reinv_cb(cb: types.CallbackQuery):
-    await cb.message.edit_text("Реинвест:", reply_markup=InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=f"{x}%", callback_data=f"ri_{x}") for x in [0, 25, 50]],
-        [InlineKeyboardButton(text=f"{x}%", callback_data=f"ri_{x}") for x in [75, 100]],
-    ]))
-
-@dp.callback_query(F.data.startswith("ri_"))
-async def reinv_set(cb: types.CallbackQuery):
-    r = int(cb.data.split("_")[1])
-    db.update(cb.from_user.id, {"reinvest": r})
-    await cb.answer(f"✅ {r}%")
-
-@dp.message(F.text == "💳 Пополнить")
-async def deposit(msg: types.Message): await msg.answer("💳 Демо-режим")
 
 @dp.message(F.text == "🔙 Назад")
 async def back(msg: types.Message): await msg.answer("Меню", reply_markup=main_kb())
@@ -352,10 +310,6 @@ async def send_signals(msg, prices, stype, title):
 
 @dp.message(F.text == "📡 Сигналы")
 async def sig(msg: types.Message): await send_signals(msg, await discovery.fetch_all(), "signals", "📡 Сигналы")
-@dp.message(F.text == "🆕 Листинги")
-async def lst(msg: types.Message): await send_signals(msg, await discovery.fetch_all(), "pumps", "🆕 Листинги")
-@dp.message(F.text == "📊 Топ-20")
-async def top20(msg: types.Message): await send_signals(msg, await discovery.fetch_all(), "top20", "📊 Топ-20")
 @dp.message(F.text == "🎯 Снайпер")
 async def snipe(msg: types.Message): await send_signals(msg, await discovery.fetch_all(), "sniper", "🎯 Снайпер")
 @dp.message(F.text == "🚀 Пампы")
@@ -400,10 +354,6 @@ async def beta(msg: types.Message):
     for sym, data in s:
         text += f"{sym}: BUY → TP: {data['price']*1.05:.4f}\n"
     await msg.answer(text)
-
-@dp.message(F.text == "🔬 Бэктест")
-async def btest(msg: types.Message):
-    await msg.answer("🔬 Бэктест 7д\nAI: +12.4%\nАгрессивная: +18.2%\nУмеренная: +8.7%")
 
 @dp.message(F.text == "📊 График")
 async def chart(msg: types.Message):
