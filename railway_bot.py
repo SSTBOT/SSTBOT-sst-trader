@@ -37,7 +37,7 @@ def place_real_order(symbol: str, side: str, amount_usd: float):
             logger.info(f"REAL ORDER: {side} {symbol} ${amount_usd:.2f} @ ${price:.4f}")
             return {"price": price, "qty": qty, "order_id": order["result"]["orderId"]}
     except Exception as e:
-        logger.error(f"Bybit error: {e}")
+        print(f"Bybit error: {e}")
     return None
 ("SST")
 
@@ -57,7 +57,7 @@ def place_real_order(symbol: str, side: str, amount_usd: float):
         if order.get("retCode") == 0:
             logger.info(f"REAL ORDER: {side} {symbol} ${amount_usd:.2f}")
             return {"price": price, "qty": qty, "order_id": order["result"]["orderId"]}
-    except Exception as e: logger.error(f"Bybit error: {e}")
+    except Exception as e: print(f"Bybit error: {e}")
     return None
 SUPABASE_URL = "https://throkijrjphuuevnofoi.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRocm9raWpyanBodXVldm5vZm9pIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODYxMjg5MCwiZXhwIjoyMDk0MTg4ODkwfQ.7p10xZyUvQ5SrPWDJHV_knVaEryn21CeP8YGbrc1CkI"
@@ -152,7 +152,7 @@ async def send_notification(user_id: int, text: str):
         await bot.send_message(user_id, text, parse_mode="Markdown")
         await bot.session.close()
     except Exception as e:
-        logger.error(f"Notify error: {e}")
+        print(f"Notify error: {e}")
 
 # ===== АВТОТРЕЙДИНГ (ИСПРАВЛЕННЫЙ) =====
 async def auto_trading_loop():
