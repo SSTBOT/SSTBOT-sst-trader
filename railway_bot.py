@@ -125,7 +125,8 @@ async def auto_trading_loop():
                 reinvest_pct = user.get("reinvest", 50)
                 open_pos = [p for p in positions if p.get("status") == "open"]
                 
-                if len(open_pos) >= 3: continue  # Максимум 3 позиции
+                if len(open_pos) >= 3: continue
+                open_tokens = {p["token"] for p in open_pos}  # Максимум 3 позиции
                 
                 cfg = STRATEGIES.get(strategy, STRATEGIES["conservative"])
                 
@@ -154,7 +155,8 @@ async def auto_trading_loop():
                 amt = balance * pos_pct / 100
                 
                 # Открытие позиций
-                for k, v in uniq[:2]:  # Максимум 2 новые за цикл
+                for k, v in uniq[:2]:
+                    if k in open_tokens: continue  # Максимум 2 новые за цикл
                     target = v["price"] * (1 + cfg["target"] / 100)
                     stop = v["price"] * (1 - cfg["stop"] / 100)
                     
