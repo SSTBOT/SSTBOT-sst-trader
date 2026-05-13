@@ -232,7 +232,7 @@ def analytics_kb():
 async def start(msg: types.Message, state: FSMContext):
     u = db.get(msg.from_user.id)
     if u: await msg.answer(f"👋 {u['name']}\n💰 {u['balance']:,.0f}\n🤖 Авто: {'🟢' if u.get('auto_trading') else '🔴'}", reply_markup=main_kb())
-    else: await msg.answer("🚀 SST TRADER v8.0\n\nВведите имя:"); await state.set_state(St.name)
+    else: await msg.answer("🚀 SST TRADER v9.0\n\nВведите имя:"); await state.set_state(St.name)
 
 @dp.message(St.name)
 async def name(msg: types.Message, state: FSMContext):
@@ -377,7 +377,7 @@ async def buy(cb: types.CallbackQuery):
     await cb.message.answer(f"✅ {sym}\nPnL: {pnl:+.0f}")
 
 async def main():
-    print("🚀 SST TRADER v8.0")
+    print("🚀 SST TRADER v9.0")
     asyncio.create_task(auto_trading_loop())
     await dp.start_polling(bot)
 
