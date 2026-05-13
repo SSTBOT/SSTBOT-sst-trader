@@ -284,7 +284,7 @@ async def auto_trading_loop():
                             )
         
         except Exception as e:
-            logger.error(f"Auto-trading error: {e}")
+            print(f"Auto-trading error: {e}")
         
         await asyncio.sleep(45)
 
