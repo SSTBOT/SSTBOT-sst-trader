@@ -244,6 +244,15 @@ async def auto_trading_loop():
                 
                 db.update(uid, {"positions": updated})
                 
+                # Авто-реинвестирование
+                reinvest_pct = user.get("reinvest", 50)
+                if reinvest_pct > 0 and user.get("balance", 0) > 10000:
+                    profit = user["balance"] - 10000
+                    if profit > 0:
+                        reinvest_amount = profit * reinvest_pct / 100
+                        db.update(uid, {"balance": user["balance"] + reinvest_amount})
+                        logger.info(f"Reinvested ${reinvest_amount:.2f} for user {uid}")
+                
         except Exception as e:
             logger.error(f"Auto-trading error: {e}")
         
