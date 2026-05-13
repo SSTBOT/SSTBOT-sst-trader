@@ -210,7 +210,8 @@ async def auto_trading_loop():
                     real_order = place_real_order(k, "BUY", amt)
                     executed_price = real_order["price"] if real_order else v["price"]
                     target = executed_price * (1 + cfg["target"] / 100)
-                    stop = executed_price * (1 - cfg["stop"] / 100)
+                    real_order = place_real_order(k, "BUY", amt)
+                    executed_price = real_order["price"] if real_order else v["price"]
                     
                     pos = {
                         "token": k, "entry_price": executed_price,
