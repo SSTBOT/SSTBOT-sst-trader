@@ -13,10 +13,6 @@ logger = logging.getLogger("SST")
 from supabase import create_client
 
 # ===== BYBIT REAL API =====
-from pybit.unified_trading import HTTP
-BYBIT_KEY = "QtxrlcN1pPUPQFMpMW"
-BYBIT_SECRET = "uxwWmOC7CFs85iMQHRq5gRpINDxkAsihxfft"
-bybit = HTTP(testnet=False, api_key=BYBIT_KEY, api_secret=BYBIT_SECRET)
 
 def place_real_order(symbol: str, side: str, amount_usd: float):
     try:
