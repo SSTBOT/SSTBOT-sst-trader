@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(me
 
 from supabase import create_client
 SUPABASE_URL = "https://throkijrjphuuevnofoi.supabase.co"
-SUPABASE_KEY = "sb_publishable_5oukEO6ho0wCH0NV9zuvBw_RKRCvl4Z"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRocm9raWpyanBodXVldm5vZm9pIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODYxMjg5MCwiZXhwIjoyMDk0MTg4ODkwfQ.7p10xZyUvQ5SrPWDJHV_knVaEryn21CeP8YGbrc1CkI"
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8510828511:AAEwLy9HhcoWVDROLgr3a4v2nx3ydc7WQiY")
