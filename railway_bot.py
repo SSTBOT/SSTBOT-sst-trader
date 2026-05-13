@@ -273,7 +273,7 @@ async def auto_trading_loop():
                 db.update(uid, {"positions": updated})
                 
                 # Реинвестирование (ИСПРАВЛЕНО!)
-                current_balance = (await supabase.table("users").select("balance").eq("id", uid).execute()).data[0]["balance"]
+                current_balance = user.get("balance", 36)
                 if reinvest_pct > 0 and current_balance > 36:
                     profit = current_balance - 36
                     if profit > 0.01:
