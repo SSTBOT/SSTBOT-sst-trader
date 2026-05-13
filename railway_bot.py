@@ -247,7 +247,7 @@ async def analytics(msg: types.Message): await msg.answer("📊 Аналитик
 @dp.message(F.text == "🤖 Автотрейдинг")
 async def auto_toggle(msg: types.Message):
     u = db.get(msg.from_user.id)
-    if not u: return await msg.answer("/start")
+    if not u: db.create(msg.from_user.id, "Trader"); u = db.get(msg.from_user.id)
     new = 0 if u.get("auto_trading") else 1
     db.update(msg.from_user.id, {"auto_trading": new})
     await msg.answer(f"🤖 Автотрейдинг: {'🟢 ВКЛ' if new else '🔴 ВЫКЛ'}", reply_markup=main_kb())
@@ -255,7 +255,7 @@ async def auto_toggle(msg: types.Message):
 @dp.message(F.text == "👤 Профиль")
 async def profile(msg: types.Message):
     u = db.get(msg.from_user.id)
-    if not u: return await msg.answer("/start")
+    if not u: db.create(msg.from_user.id, "Trader"); u = db.get(msg.from_user.id)
     t = u.get("trades", [])
     pnl = sum(x.get("pnl",0) for x in t)
     w = sum(1 for x in t if x.get("pnl",0)>0)
@@ -320,7 +320,7 @@ async def vip(msg: types.Message): await send_signals(msg, await discovery.fetch
 @dp.message(F.text == "💼 Портфель")
 async def portf(msg: types.Message):
     u = db.get(msg.from_user.id)
-    if not u: return await msg.answer("/start")
+    if not u: db.create(msg.from_user.id, "Trader"); u = db.get(msg.from_user.id)
     pos = [p for p in u.get("positions", []) if p.get("status") == "open"]
     if not pos: return await msg.answer("💼 Нет открытых позиций")
     text = "💼 Портфель\n\n"
@@ -331,7 +331,7 @@ async def portf(msg: types.Message):
 @dp.message(F.text == "📋 Сделки")
 async def trades(msg: types.Message):
     u = db.get(msg.from_user.id)
-    if not u: return await msg.answer("/start")
+    if not u: db.create(msg.from_user.id, "Trader"); u = db.get(msg.from_user.id)
     t = u.get("trades", [])
     if not t: return await msg.answer("📋 Нет сделок")
     text = f"📋 Сделки ({len(t)})\n\n"
