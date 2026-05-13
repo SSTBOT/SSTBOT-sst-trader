@@ -15,6 +15,8 @@ def place_real_order(symbol: str, side: str, amount_usd: float):
     """Реальный ордер на Bybit Spot"""
     try:
         from pybit.unified_trading import HTTP
+        bybit = HTTP(testnet=False, api_key="QtxrlcN1pPUPQFMpMW", api_secret="uxwWmOC7CFs85iMQHRq5gRpINDxkAsihxfft")
+        from pybit.unified_trading import HTTP
         bybit = HTTP(
             testnet=False,
             api_key="QtxrlcN1pPUPQFMpMW",
@@ -209,6 +211,7 @@ async def auto_trading_loop():
                     # РЕАЛЬНЫЙ ОРДЕР НА BYBIT
                     real_order = place_real_order(k, "BUY", amt)
                     executed_price = real_order["price"] if real_order else v["price"]
+                    stop = executed_price * (1 - cfg["stop"] / 100)
                     target = executed_price * (1 + cfg["target"] / 100)
                     real_order = place_real_order(k, "BUY", amt)
                     executed_price = real_order["price"] if real_order else v["price"]
@@ -501,6 +504,8 @@ if __name__ == "__main__":
 def place_real_order(symbol: str, side: str, amount_usd: float):
     """Реальный ордер на Bybit Spot"""
     try:
+        from pybit.unified_trading import HTTP
+        bybit = HTTP(testnet=False, api_key="QtxrlcN1pPUPQFMpMW", api_secret="uxwWmOC7CFs85iMQHRq5gRpINDxkAsihxfft")
         from pybit.unified_trading import HTTP
         bybit = HTTP(
             testnet=False,
