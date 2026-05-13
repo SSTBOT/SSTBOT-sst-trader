@@ -496,3 +496,31 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
 
+
+def place_real_order(symbol: str, side: str, amount_usd: float):
+    """Реальный ордер на Bybit Spot"""
+    try:
+        from pybit.unified_trading import HTTP
+        bybit = HTTP(
+            testnet=False,
+            api_key="QtxrlcN1pPUPQFMpMW",
+            api_secret="uxwWmOC7CFs85iMQHRq5gRpINDxkAsihxfft"
+        )
+        sym = symbol.replace("/", "")
+        ticker = bybit.get_tickers(category="spot", symbol=sym)
+        if ticker.get("retCode") != 0:
+            return None
+        price = float(ticker["result"]["list"][0]["lastPrice"])
+        qty = round(amount_usd / price, 4)
+        if qty <= 0:
+            return None
+        order = bybit.place_order(
+            category="spot", symbol=sym,
+            side="Buy" if side == "BUY" else "Sell",
+            orderType="Market", qty=str(qty)
+        )
+        if order.get("retCode") == 0:
+            return {"price": price, "qty": qty, "order_id": order["result"]["orderId"]}
+    except Exception as e:
+        print(f"Bybit error: {e}")
+    return None
